@@ -1,32 +1,37 @@
 # Simulation Software Utilities
 
-This repository contains input decks, analysis scripts, Jupyter notebooks, and 
-example configurations for working with the various simulation softwares I've 
-used throughout graduate school (this includes, but is not limited to OSIRIS, 
-HiPACE++, and ...).
+A collection of input decks, Slurm submission scripts, and analysis workflows
+for plasma simulation codes used throughout my PhD research and in our group.
 
-While the input decks and everything can be used as examples, there is a 
-README present in each directory explaining the purpose of each. Some of these
-input decks were used to run important tests throughout my thesis research, so 
-I simply wanted to save them, while others are just there for education purposes.
+---
 
-# Installation and Setup
+## Overview of Simulation Codes
 
-Once you've gone through the installation process for one of these codes,
-installing others is basically the same. Nevertheless, I'll go through the 
-installation process for all of these codes.
+| Code | Type | Submission Template | Documentation |
+| :--- | :--- | :--- | :--- |
+| **OSIRIS** | Relativistic PIC (1D/2D/3D) | [`osiris/jobex.sh`](./osiris/jobex.sh) | [OSIRIS Guide](./osiris/README.md) |
+| **HiPACE++** | Quasi-static 3D PIC | [`hipace/submit_hipace.sh`](./hipace/submit_hipace.sh) | [HiPACE++ Guide](./hipace/README.md) |
 
-Also note that the installation process is slightly different depending on which
-machine you're on. You can also run the codes locally, which is nice if you're 
-doing any kind of software development, so I'll also walk through the process of
-doing that. You can find all of the documents referenced here in ___
+---
 
-Currently documented systems:
+## Shared Computing and HPC Guides
 
-- [Local Installation](#local-installation)
-- [Great Lakes @ UofM](#great-lakes--uofm)
+Before submitting large runs, here are some setup guides for various machines:
 
-## OSIRIS
+* **[Great Lakes HPC Guide](docs/clusters/great-lakes.md)** – System modules, Slurm queue options, and storage quotas (`/scratch` vs `/home`).
+* **[Local Development Setup](docs/clusters/local-setup.md)** – Compiling and testing light 1D/2D runs on local machines.
+* **[Python Analysis Environment](docs/analysis/python-env.md)** – Conda environments, HDF5 reader libraries, and Open OnDemand setup.
+
+---
+
+## Repository Layout
+
+* **`osiris/` & `hipace/`** – Self-contained directories with input decks, cluster 
+configurations, and the primary batch submission script for each code.
+* **`analysis/`** – Post-processing tools, interactive Jupyter notebooks, and 
+automated Python scripts for analyzing simulation output.
+* **`docs/`** – Shared lab documentation, HPC best practices, and onboarding 
+instructions.
 
 
 
