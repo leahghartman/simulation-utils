@@ -1,7 +1,8 @@
 # Simulation Software Utilities
 
 A collection of input decks, Slurm submission scripts, and analysis workflows
-for plasma simulation codes used throughout my PhD research and in our group.
+for plasma simulation codes used throughout my PhD research and in Alec
+Thomas's research group.
 
 ---
 
@@ -10,7 +11,7 @@ for plasma simulation codes used throughout my PhD research and in our group.
 | Code | Type | Submission Template | Documentation |
 | :--- | :--- | :--- | :--- |
 | **OSIRIS** | Relativistic PIC (1D/2D/3D) | [`osiris/jobex.sh`](./osiris/jobex.sh) | [OSIRIS Guide](./osiris/README.md) |
-| **HiPACE++** | Quasi-static 3D PIC | [`hipace/submit_hipace.sh`](./hipace/submit_hipace.sh) | [HiPACE++ Guide](./hipace/README.md) |
+| **HiPACE++** | Quasi-static 3D PIC | [`hipace/jobex.sh`](./hipace/jobex.sh) | [HiPACE++ Guide](./hipace/README.md) |
 
 ---
 

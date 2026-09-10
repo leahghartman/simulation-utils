@@ -123,6 +123,7 @@ def osiris_load_efield(
         h5_key=field_name,
     )
 
+
 def osiris_load_bfield(
     dump: int,
     component: str = "1",
