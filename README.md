@@ -17,8 +17,6 @@ University of Michigan.
 - [Repository layout](#repository-layout)
 - [Getting help and contributing](#getting-help-and-contributing)
 
----
-
 ## New here? Start here
 
 Work through the following steps in order. Most people can get through the 
@@ -33,8 +31,6 @@ first three in an afternoon.
 4. **Look at your output.** Open one of the notebooks in [`analysis/`](./analysis) and point
    it at your run's output directory.
 
----
-
 ## Find what you need
 
 | I want to... | Go to |
@@ -45,8 +41,6 @@ first three in an afternoon.
 | Compile or test on my laptop | [Local Development Setup](docs/clusters/local-setup.md) |
 | Plot or analyze simulation output | [`analysis/`](./analysis) and the [Python Analysis Environment](docs/analysis/python-env.md) |
 | Find an example input deck | The `osiris/` or `hipace/` folder for your code |
-
----
 
 ## Simulation codes
 
@@ -60,8 +54,6 @@ Not sure which code to use? OSIRIS is the general-purpose choice we usually
 default to in our group for most laser-plasma problems, but if you are unsure, 
 you can always ask Alec or another graduate student in the group. We're happy
 to help! :)
-
----
 
 ## Computing and HPC guides
 
@@ -90,8 +82,6 @@ Read these before submitting large runs.
 Each code folder is self-contained: all of the information you need to run that
 code is contained in it.
 
----
-
 ## Getting help and contributing
 
 - **Stuck?** You're welcome to contact Alec, myself, or any other graduate student
@@ -101,16 +91,6 @@ code is contained in it.
   the guides.
 - **Adding new code?** Copy the structure of `osiris/`: a `README.md`, a `jobex.sh`,
   and an example input deck.
-
-## Repository Layout
-
-* **`osiris/` & `hipace/`** – Self-contained directories with input decks, cluster 
-configurations, and the primary batch submission script for each code.
-* **`analysis/`** – Post-processing tools, interactive Jupyter notebooks, and 
-automated Python scripts for analyzing simulation output.
-* **`docs/`** – Shared lab documentation, HPC best practices, and onboarding 
-instructions.
-
 
 
 
