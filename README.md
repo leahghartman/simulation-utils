@@ -6,8 +6,6 @@ University of Michigan.
 
 **New to the group?** Start with [New here? Start here](#new-here-start-here) below.
 
----
- 
 ## Contents
  
 - [New here? Start here](#new-here-start-here)
