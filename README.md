@@ -46,7 +46,6 @@ first three in an afternoon.
 | :--- | :--- | :--- | :--- |
 | **OSIRIS**   | Fully relativistic PIC (1D/2D/3D) | [OSIRIS Guide](./osiris/README.md) | [`osiris/jobex.sh`](./osiris/jobex.sh) |
 | **HiPACE++** | Quasi-static 3D PIC | [HiPACE++ Guide](./hipace/README.md) | [`hipace/jobex.sh`](./hipace/jobex.sh) |
-| **WarpX**    | Electromagnetic PIC (1D/2D/3D, RZ) | *Coming soon* | *Coming soon* |
 
 Not sure which code to use? OSIRIS is the general-purpose choice we usually
 default to in our group for most laser-plasma problems, but if you are unsure, 
