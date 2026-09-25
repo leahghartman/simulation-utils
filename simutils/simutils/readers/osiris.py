@@ -5,7 +5,7 @@ HDF5 readers for OSIRIS simulation data (grid fields, particle datasets,)
 """
 
 from pathlib import Path
-from typing import Dict, Tuple, Union, Optional
+from typing import Dict, Tuple, Union, Optional, List
 import h5py
 import numpy as np
 
