@@ -7,24 +7,18 @@ laser wakefield, plasma wakefield, and photon acceleration work.
 **First time?** Read the sections in order. Compile OSIRIS (§2), run one of the
 1D test decks (§3), then come back to §4 and §5 before you write your own deck.
 
-
-This directory contains everything needed to compile, configure, and submit
-runs of **OSIRIS**, the relativistic particle-in-cell (PIC) code used for most
-of the group's laser wakefield/plasma wakefield and photon acceleration
-work.
-
 ← [Back to the main README](../README.md)
 
 ## Contents
 
 1. [What's in this directory](#1-whats-in-this-directory)
 2. [Compiling OSIRIS](#2-compiling-osiris)
-3. [Submitting a run (`jobex.sh`)](#3-submitting-a-run-jobexsh)
+3. [Submitting a job (`jobex.sh`)](#3-submitting-a-job-jobexsh)
 4. [Input deck structure (general OSIRIS)](#4-input-deck-structure-general-osiris)
 5. [Common input deck mistakes](#6-common-input-deck-mistakes)
 6. [Where to go next](#7-where-to-go-next)
 
-## 1. What's in this directory
+## What's in this directory
 
 ```
 .
@@ -38,10 +32,7 @@ work.
 └── README.md                       <-- you are here
 ```
 
-
----
-
-## 2. Compiling OSIRIS
+## Compiling OSIRIS
 
 OSIRIS is written in Fortran (with some C). To build it you need:
 
@@ -51,17 +42,24 @@ OSIRIS is written in Fortran (with some C). To build it you need:
 
 OSIRIS is compiled **separately for each dimension**, so to run a 1D deck you
 need a 1D binary and to compile a 2D deck you need a 2D binary. The general
-workflow is:
+workflow for compiling is, from the top of the OSIRIS source tree:
 
 ```bash
-# from the top of the OSIRIS source tree
 ./configure -d <dimensions> -s <system_config>
 make
-# the executable ends up in bin/, e.g. bin/osiris-2D.e
 ```
 
+So, for example, if I wanted to compile OSIRIS with a 2D binary, I can run (from 
+the top of the OSIRIS source tree): 
 
+```
 
+./configure -d 2 -s <system_config>
+make
+```
+
+The executable that's created as a result ends up in the `bin/` directory, e.g.
+`bin/osiris-2D.e`.
 
 ### On Great Lakes
 
@@ -118,28 +116,23 @@ a standard build, so use the full path in `jobex.sh`, e.g.
 
 To pick up new changes on the branch later, run `git pull` and then `make` again.
 
-## Submitting a run (`jobex.sh`)
+## Submitting a job (`jobex.sh`)
 
-`jobex.sh` is the shared Slurm template for OSIRIS jobs on Great Lakes.
+`jobex.sh` is the shared Slurm template for OSIRIS jobs on Great Lakes. You can
+submit a job via the `sbatch` command followed by the location of your batch
+script:
  
 ```bash
-sbatch jobex.sh <path/to/input_deck>
+sbatch jobex.sh
 ```
  
-Key things to edit before submitting:
-- `#SBATCH --account=` — your allocation
-- `#SBATCH --ntasks=` — must match the parallel decomposition (`node_number`)
-  set in the input deck's `node_conf` section, or OSIRIS will error out on
-  startup
-- `#SBATCH --time=` — wall-clock; PKT 2D runs with fine resolution can take
-  much longer than the 1D equivalent, budget accordingly
+Edit these things before you submit:
 
-> **TODO (Leah):** paste in the actual `jobex.sh` contents here (or link
-> directly) with inline `#` comments explaining each Slurm flag, so the next
-> student doesn't have to reverse-engineer it.
-
-
----
+| Slurm flag | What to set it to |
+| :--- | :--- |
+| `#SBATCH --account=` | Your group's Great Lakes allocation |
+| `#SBATCH --ntasks=` | The **product** of `node_number` in the deck's `node_conf` section (e.g. `node_number(1:2) = 8, 4` → `--ntasks=32`). If they don't match, OSIRIS stops at startup. |
+| `#SBATCH --time=` | Wall-clock limit. 2D PKT runs at fine resolution take much longer than the 1D equivalent, so budget accordingly. |
 
 ## 4. Input deck structure (general OSIRIS)
 

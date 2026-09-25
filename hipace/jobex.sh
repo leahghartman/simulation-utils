@@ -16,9 +16,9 @@
 
 # The application(s) to execute along with its input arguments and options:
 
-##################################################################################
+###############################################################################
 # EDIT BELOW HERE
-##################################################################################
+###############################################################################
 
 # Select the input file, root directory, and data directory
 export INPUTFILE=~/hipaceutils/decks/plasma-prof
@@ -33,7 +33,7 @@ RUNTITLE=test
 export MPICH_GPU_SUPPORT_ENABLED=1		# GPU-aware MPI
 export CUDA_VISIBLE_DEVICES=$SLURM_LOCALID	# Expose one GPU per MPI rank
 
-#################################################################################
+###############################################################################
 
 # Path to HiPACE++ executable and new directory name
 export EXEC=hipace.MPI.CUDA.DP.LF
