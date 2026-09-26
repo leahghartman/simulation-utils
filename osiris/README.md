@@ -8,11 +8,10 @@ laser wakefield, plasma wakefield, and photon acceleration work.
 1D test decks (§2), then come back to §3 and §4 before you try to write your 
 own deck.
 
-1. [Compiling OSIRIS](#2-compiling-osiris)
-2. [Submitting a job (`jobex.sh`)](#3-submitting-a-job-jobexsh)
-3. [Input deck structure (general OSIRIS)](#4-input-deck-structure-general-osiris)
-4. [Common input deck mistakes](#6-common-input-deck-mistakes)
-5. [Where to go next](#7-where-to-go-next)
+1. [Compiling OSIRIS](#1-compiling-osiris)
+2. [Submitting a job (`jobex.sh`)](#2-submitting-a-job-jobexsh)
+3. [Input deck structure (general OSIRIS)](#3-input-deck-structure-general-osiris)
+4. [Useful resources](#4-where-to-go-next)
 
 The following is a map of this directory:
 
@@ -39,7 +38,7 @@ OSIRIS is written in Fortran (with some C). To build it you need:
   output files
 
 OSIRIS is compiled **separately for each dimension**, so to run a 1D deck you
-need a 1D binary and to compile a 2D deck you need a 2D binary. The general
+need a 1D binary and to run a 2D deck you need a 2D binary. The general
 workflow for compiling is, from the top of the OSIRIS source tree:
 
 ```bash
@@ -50,8 +49,7 @@ make
 So, for example, if I wanted to compile OSIRIS with a 2D binary, I can run (from 
 the top of the OSIRIS source tree): 
 
-```
-
+```bash
 ./configure -d 2 -s <system_config>
 make
 ```
@@ -130,13 +128,13 @@ library it depends on), and FFTW.
 #### Step 4: Download and compile OSIRIS
 
 ```bash
-mkdir software && cd software
+mkdir -p ~/software && cd ~/software
 git clone https://github.com/osiris-code/osiris.git
 cd osiris
 
 # The following configures OSIRIS for 1D. If you want two dimensions, for example,
 # after running `make` below, you can also run `make 2d`.
-./configure -s <great_lakes_config> -d 1
+./configure -s greatlakes.intel -d 1
 
 # The following will take a few minutes; just make sure there are no errors,
 # but there will be a lot of output.
@@ -175,7 +173,7 @@ The standard OSIRIS build doesn't include some features. You need the
 
 - **Q3D:** quasi-3D (cylindrical modes) geometry
 - **QED:** strong-field QED effects (photon emission, pair production)
-- **Photon kinetics:** needed for the decks in `decks/*/photon_kinetics_tests/`
+- **Photon kinetics:** photon kinetic (PKT) modeling of laser pulses in plasma
 
 **Step 1: Get access.** Email **Alec** and ask for access to the OSIRIS
 development repository. You may need to accept an invite to an organization on
@@ -215,13 +213,13 @@ command followed by the location of the batch script. So, if you copied the
 script to your home directory, to submit a job you'd run:
  
 ```bash
-sbatch jobex.sh
+sbatch ~/jobex.sh
 ```
 
 The script loads the modules OSIRIS needs itself, so you don't need to set 
 anything up in your terminal first.
 
-### SLURM settings (`#SBATCH` lines)
+### Slurm settings (`#SBATCH` lines)
 
 Change these for every run:
 
@@ -241,7 +239,7 @@ need/want to:
 | :--- | :--- |
 | `--mem-per-cpu` | Memory per MPI rank |
 | `--partition` | Queue to run in; `standard` is the normal CPU partition |
-| `--export` | `ALL` copies your environment (loaded modules, variables) into the job |
+| `--export` | `ALL` copies your environment variables into the job |
 | `--mail-type` | Which events trigger an email |
 
 **Matching `node_number`:** the total number of MPI ranks,
@@ -280,7 +278,7 @@ simply because you're too lazy to estimate how long your job will take.
 
 ---
 
-## Input deck structure
+## (3) Input deck structure
 
 An OSIRIS input deck is a text file made up of **sections** in the form 
 `section_name{ key = value, }`. The sections must appear in a fixed order. Below
@@ -291,7 +289,7 @@ decks in `decks/` instead of writing one from scratch.
 simulation { }                                   ! global options
  
 node_conf {                                      ! parallel decomposition
-  node_number(1:1) = 4,                          ! MPI ranks per direction -> must match jobex.sh (§3)
+  node_number(1:1) = 4,                          ! MPI ranks per direction -> must match jobex.sh
   if_periodic(1:1) = .false.,
 }
  
@@ -331,7 +329,7 @@ you can use in these input files, please see the
 
 ---
 
-## Useful resources
+## (4) Useful resources
 
 - **Analyze your output:** [`../analysis/`](../analysis) and the
   [Python Analysis Environment](../docs/analysis/python-env.md) guide
