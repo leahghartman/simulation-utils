@@ -9,18 +9,12 @@ laser wakefield, plasma wakefield, and photon acceleration work.
 
 ← [Back to the main README](../README.md)
 
-## Contents
-
 1. [What's in this directory](#1-whats-in-this-directory)
 2. [Compiling OSIRIS](#2-compiling-osiris)
 3. [Submitting a job (`jobex.sh`)](#3-submitting-a-job-jobexsh)
 4. [Input deck structure (general OSIRIS)](#4-input-deck-structure-general-osiris)
 5. [Common input deck mistakes](#6-common-input-deck-mistakes)
 6. [Where to go next](#7-where-to-go-next)
-
----
-
-## What's in this directory
 
 ```
 .
