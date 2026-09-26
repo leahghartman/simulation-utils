@@ -18,12 +18,13 @@ The following is a map of this directory:
 
 ```
 .
-├── decks
+├── decks      <-- example input decks for 1D, 2D, 3D, and Quasi-3D
 │   ├── 1D
-│   └── 2D
-├── jobex.sh                        <-- Slurm submission template
-├── profile.osiris
-└── README.md                       <-- you are here
+│   ├── 2D
+│   ├── 3D
+│   └── Q3D
+├── jobex.sh   <-- example batch script
+└── README.md  <-- you are here
 ```
 
 ---
