@@ -4,17 +4,17 @@ Everything you need to compile, configure, and submit OSIRIS runs. OSIRIS
 is the fully-relativistic particle-in-cell (PIC) code the group uses for most
 laser wakefield, plasma wakefield, and photon acceleration work.
 
-**First time?** Read the sections in order. Compile OSIRIS (§2), run one of the
-1D test decks (§3), then come back to §4 and §5 before you write your own deck.
+**First time?** Read the sections in order. Compile OSIRIS (§1), run one of the
+1D test decks (§2), then come back to §3 and §4 before you try to write your 
+own deck.
 
-← [Back to the main README](../README.md)
+1. [Compiling OSIRIS](#2-compiling-osiris)
+2. [Submitting a job (`jobex.sh`)](#3-submitting-a-job-jobexsh)
+3. [Input deck structure (general OSIRIS)](#4-input-deck-structure-general-osiris)
+4. [Common input deck mistakes](#6-common-input-deck-mistakes)
+5. [Where to go next](#7-where-to-go-next)
 
-1. [What's in this directory](#1-whats-in-this-directory)
-2. [Compiling OSIRIS](#2-compiling-osiris)
-3. [Submitting a job (`jobex.sh`)](#3-submitting-a-job-jobexsh)
-4. [Input deck structure (general OSIRIS)](#4-input-deck-structure-general-osiris)
-5. [Common input deck mistakes](#6-common-input-deck-mistakes)
-6. [Where to go next](#7-where-to-go-next)
+The following is a map of this directory:
 
 ```
 .
