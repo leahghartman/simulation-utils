@@ -20,9 +20,7 @@ The following is a map of this directory:
 .
 ├── decks
 │   ├── 1D
-│   │   └── photon_kinetics_tests
 │   └── 2D
-│       └── photon_kinetics_tests
 ├── jobex.sh                        <-- Slurm submission template
 ├── profile.osiris
 └── README.md                       <-- you are here
@@ -30,13 +28,14 @@ The following is a map of this directory:
 
 ---
 
-## Compiling OSIRIS
+## (1) Compiling OSIRIS
 
 OSIRIS is written in Fortran (with some C). To build it you need:
 
-- a Fortran and C compiler (GNU or Intel)
 - MPI
-- parallel HDF5, which OSIRIS uses for its output files
+- a Fortran and C compiler (GNU or Intel)
+- optionally (but we will use it), parallel HDF5, which OSIRIS uses for its 
+  output files
 
 OSIRIS is compiled **separately for each dimension**, so to run a 1D deck you
 need a 1D binary and to compile a 2D deck you need a 2D binary. The general
@@ -61,8 +60,9 @@ The executable that's created as a result ends up in the `bin/` directory, e.g.
 
 ### On Great Lakes
 
-[Great Lakes](https://arc.umich.edu/greatlakes/user-guide/) is U-M's shared computing cluster. 
-If you haven't used one before, here's a brief explanation of how they work:
+[Great Lakes](https://documentation.its.umich.edu/arc-hpc/greatlakes/user-guide)
+is U-M's shared computing cluster. If you haven't used one before, here's a 
+brief explanation of how they work:
 
 - You **log in** to a **login node**. This is a shared machine for editing files,
   compiling code, and submitting jobs.
@@ -74,7 +74,7 @@ If you haven't used one before, here's a brief explanation of how they work:
 #### Before you start (one time only)
 
 1. **Request a Great Lakes login.** Use the [ARC login request portal](https://caen.engin.umich.edu/rc/getting-started/)
-   to do this.
+   to do this (scroll down to find the request link on that page).
 2. **Ask Alec to add you to the group's Slurm account.** That account name goes
    in `--account` in `jobex.sh`, and your scratch folder is named after it.
 
@@ -116,7 +116,6 @@ module purge           # unload everything
 To compile OSIRIS, we need to load the following set of modules:
 
 ```bash
-module purge
 module load intel/2022.1.2
 module load openmpi/4.1.6
 module load libaec/1.1.7
@@ -148,8 +147,10 @@ Q3D, QED, or photon kinetics, see [Special features](#special-features-q3d-qed-p
 
 #### Step 5: Point `jobex.sh` at your build
  
-Set `ROOT_DIR` in your copy of `jobex.sh` to the folder you just built in,
-e.g. `ROOT_DIR=$HOME/osiris`. Now you're ready for §3!
+Copy `jobex.sh` to your location of choice in your home directory on Great Lakes. 
+Inside the file, set `ROOT_DIR` in your copy of `jobex.sh` to the folder you just built in,
+e.g. `ROOT_DIR=$HOME/software/osiris`. Now you're ready for §2 (and can likely
+skip the following subsections unless you explicitly need them)!
 
 ### Local (macOS/Linux)
 
@@ -205,12 +206,12 @@ To pick up new changes on the branch later, run `git pull` and then `make` again
 
 ---
 
-## Submitting a job (`jobex.sh`)
+## (2) Submitting a job (`jobex.sh`)
 
 `jobex.sh` is the shared Slurm template for OSIRIS jobs on Great Lakes. Every 
-setting is commented in the script itself. You can copy the file to a location 
-of your choice on Great Lakes, then submit a job via the `sbatch` command 
-followed by the location of the batch script:
+setting is commented in the script itself. You can submit a job via the `sbatch` 
+command followed by the location of the batch script. So, if you copied the
+script to your home directory, to submit a job you'd run:
  
 ```bash
 sbatch jobex.sh
