@@ -1,0 +1,159 @@
+! =============================================================================
+! simple-lwfa: a basic 2D laser wakefield accelerator (LWFA)
+! =============================================================================
+!
+! WHAT THIS SIMULATES
+!   An intense, short laser pulse
+!
+! HOW TO RUN
+!   Needs a 2D build (osiris-2D.e), so set DIMS=2D in jobex.sh. 
+!
+! WHAT YOU SHOULD SEE
+!
+!
+! UNITS
+!
+!
+! One HDF5 file per dump, every 10 / w_p (31 files: t = 0, 10, ..., 300).
+! =============================================================================
+
+! -----------------------------------------------------------------------------
+! Simulation: global options. Empty is fine; the defaults are sensible and will
+!             work for this example.
+! -----------------------------------------------------------------------------
+simulation {
+
+}
+
+! -----------------------------------------------------------------------------
+! node_conf: how the box is split between MPI ranks.
+!   node_number(1:2) = ranks along x1, ranks along x2
+!   The total (4 x 8 = 32) MUST equal --nodes x --tasks-per-node in jobex.sh
+!   Each rank gets 1024/4 = 256 cells along x1 and 256/8 = 32 cells along x2.
+!   if_periodic = .false. everywhere: nothing wraps around
+! -----------------------------------------------------------------------------
+node_conf {
+    node_number(1:2) = 4, 8,
+    if_periodic(1:2) = .false., .false.,
+}
+
+! -----------------------------------------------------------------------------
+! grid: number of cells in each direction
+!   Cell size = box length / number of cells (box size is set in "space").
+!       dx1 = 32.0 / 1024 = 0.03125 c/w_p -> about 20 cells per laser wavelength
+!                                            (2*pi/omega0 = 0.628). Must resolve
+!                                            the laser oscillation.
+!       dx2 = 25.6 / 256 = 0.1 c/w_p      -> transverse only needs to resolve the
+!                                            spot size and bubble, so coarser.
+! -----------------------------------------------------------------------------
+grid {
+    nx_p(1:2) = 1024, 256,
+}
+
+! -----------------------------------------------------------------------------
+! time_step
+!   dt: must satisfy the Courant condition or OSIRIS refuses to run.
+!       In 2D: dt < 1 / sqrt(1/dx1^2 + 1/dx2^2) = 0.0298 here; so 0.025 is 
+!       safely below it. If you change the grid, recompute this!
+!   ndump: base output interval in time steps. 400 steps x 0.025 = 10 / w_p.
+!          Each diagnostic below writes every (ndump x its ndump_fac) steps.
+! -----------------------------------------------------------------------------
+time_step {
+    dt    = 0.025,
+    ndump = 400,
+}
+
+! -----------------------------------------------------------------------------
+! space: box size and the moving window.
+!   x1 (longitudinal, propagation direction): 0 to 32 c/w_p, about 5 plasma
+!       wavelengths.
+!   x2 (transverse): -12.8 to 12.8 c/w_p, several laser spot sizes wide so the
+!       laser and wake never touch the side boundaries.
+!   if_move: the box moves along x1 at the speed of light, following the laser.
+!       Without this, we'd need a box as long as the whole plasma.
+! -----------------------------------------------------------------------------
+space {
+    xmin(1:2) = 0.0, -12.8,
+    xmax(1:2) = 32.0, 12.8,
+    if_move(1:2) = .true., .false.,
+}
+
+! -----------------------------------------------------------------------------
+! time: how long to simulate, in 1/w_p.
+!   tmax = 300 -> the laser travels 300 c/w_p = 0.38 mm
+! -----------------------------------------------------------------------------
+time {
+    tmin = 0.0,
+    tmax = 300.0,
+}
+
+! -----------------------------------------------------------------------------
+! -----------------------------------------------------------------------------
+el_mag_fld {
+
+}
+
+! -----------------------------------------------------------------------------
+! -----------------------------------------------------------------------------
+emf_bound {
+    type(1:2,1) = "open", "open",
+    type(1:2,2) = "open", "open",
+}
+
+! -----------------------------------------------------------------------------
+! -----------------------------------------------------------------------------
+diag_emf {
+    ndump_fac = 1,
+    reports = "e1", "e2", "b3",
+}
+
+particles {
+    num_species = 1,
+    interpolation = "quadratic",
+}
+
+species {
+    name = "electrons",
+    rqm = -1.0,
+    num_par_x(1:2) = 2, 2,
+}
+
+profile {
+    profile_type = "math func",
+    math_func_expr = "if(x1 < 32.0, 0.0, if(x1 < 42.0, (x1 - 32.0)/10.0, 1.0))",
+}
+
+spe_bound {
+    type(1:2,1) = "open", "open",
+    type(1:2,2) = "open", "open",
+}
+
+diag_species {
+    ndump_fac = 1,
+    reports = "charge",
+
+    ndump_fac_pha = 1,
+    ps_nx(1:2) = 512, 256,
+    ps_np(1:3) = 1024, 256, 256,
+    ps_pmin(1:3) = -5.0, 10.0, -10.0,
+    ps_pmax(1:3) = 50.0, 10.0, 10.0,
+    if_ps_p_auto(1:3) = .true., .true., .true.,
+    phasespaces = "p1x1", "p2x2",
+}
+
+zpulse {
+    a0 = 4.0,
+    omega0 = 10.0,
+    pol = 0.0,
+    propagation = "forward",
+
+    lon_type = "sin2",
+    lon_start = 31.0,
+    lon_rise = 3.14,
+    lon_flat = 0.0,
+    lon_fall = 3.14,
+
+    per_type = "gaussian",
+    per_w0 = 4.0,
+    per_focus = 42.0,
+}
