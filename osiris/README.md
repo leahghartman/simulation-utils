@@ -18,6 +18,8 @@ laser wakefield, plasma wakefield, and photon acceleration work.
 5. [Common input deck mistakes](#6-common-input-deck-mistakes)
 6. [Where to go next](#7-where-to-go-next)
 
+---
+
 ## What's in this directory
 
 ```
@@ -31,6 +33,8 @@ laser wakefield, plasma wakefield, and photon acceleration work.
 ├── profile.osiris
 └── README.md                       <-- you are here
 ```
+
+---
 
 ## Compiling OSIRIS
 
@@ -63,6 +67,95 @@ The executable that's created as a result ends up in the `bin/` directory, e.g.
 
 ### On Great Lakes
 
+[Great Lakes](https://arc.umich.edu/greatlakes/user-guide/) is U-M's shared computing cluster. 
+If you haven't used one before, here's a brief explanation of how they work:
+
+- You **log in** to a **login node**. This is a shared machine for editing files,
+  compiling code, and submitting jobs.
+- Your simulations run on **compute nodes** by submitting jobs to Slurm, the 
+  scheduler that shares the machine between users.
+- **Never run OSIRIS directly on a login node.** Compiling there is fine, but
+  running large simulations is not.
+
+#### Before you start (one time only)
+
+1. **Request a Great Lakes login.** Use the [ARC login request portal](https://caen.engin.umich.edu/rc/getting-started/)
+   to do this.
+2. **Ask Alec to add you to the group's Slurm account.** That account name goes
+   in `--account` in `jobex.sh`, and your scratch folder is named after it.
+
+#### Step 1: Log in
+
+From a terminal, run:
+
+```bash
+ssh <uniqname>@greatlakes.arc-ts.umich.edu
+```
+
+You need to be **on campus or connected to the UM-VPN**. You'll be asked for your
+password then an Okta confirmation. Once you're in, the prompt shows a login 
+node name, like `[uniqname@gl-login1 ~]$`.
+
+#### Step 2: Know where files go
+ 
+| Location | Use it for | Watch out for |
+| :--- | :--- | :--- |
+| `~` (your home folder) | OSIRIS source, builds, scripts, input decks | 80 GB quota |
+| `/scratch/<account>_root/<account>/<uniqname>` | Simulation output | Files **not accessed for 60 days are deleted** |
+
+Simulation output can easily fill up your home directory, so make sure to send 
+all of your data to scratch (`DATA_DIR` in `jobex.sh`). Copy anything you want to 
+keep, such as figures or processed data, somewhere permanent.
+
+#### Step 3: Load modules
+
+Software on Great Lakes isn't available until you *load* it with the `module`
+command. Some useful commands:
+
+```bash
+module list            # what's loaded right now
+module avail           # what's available to load
+module spider hdf5     # search for a package and see how to load it
+module purge           # unload everything
+```
+
+To compile OSIRIS, we need to load the following set of modules:
+
+```bash
+module purge
+module load intel/2022.1.2
+module load openmpi/4.1.6
+module load libaec/1.1.7
+module load phdf5/1.12.1
+module load fftw/3.3.10
+```
+
+These are the Intel compiler, MPI, parallel HDF5 (with `libaec`, a compression
+library it depends on), and FFTW.
+
+#### Step 4: Download and compile OSIRIS
+
+```bash
+mkdir software && cd software
+git clone https://github.com/osiris-code/osiris.git
+cd osiris
+
+# The following configures OSIRIS for 1D. If you want two dimensions, for example,
+# after running `make` below, you can also run `make 2d`.
+./configure -s <great_lakes_config> -d 1
+
+# The following will take a few minutes; just make sure there are no errors,
+# but there will be a lot of output.
+make
+```
+
+This builds the public version of OSIRIS. For specialized code such as
+Q3D, QED, or photon kinetics, see [Special features](#special-features-q3d-qed-photon-kinetics) below.
+
+#### Step 5: Point `jobex.sh` at your build
+ 
+Set `ROOT_DIR` in your copy of `jobex.sh` to the folder you just built in,
+e.g. `ROOT_DIR=$HOME/osiris`. Now you're ready for §3!
 
 ### Local (macOS/Linux)
 
@@ -116,33 +209,138 @@ a standard build, so use the full path in `jobex.sh`, e.g.
 
 To pick up new changes on the branch later, run `git pull` and then `make` again.
 
+---
+
 ## Submitting a job (`jobex.sh`)
 
-`jobex.sh` is the shared Slurm template for OSIRIS jobs on Great Lakes. You can
-submit a job via the `sbatch` command followed by the location of your batch
-script:
+`jobex.sh` is the shared Slurm template for OSIRIS jobs on Great Lakes. Every 
+setting is commented in the script itself. You can copy the file to a location 
+of your choice on Great Lakes, then submit a job via the `sbatch` command 
+followed by the location of the batch script:
  
 ```bash
 sbatch jobex.sh
 ```
- 
-Edit these things before you submit:
 
-| Slurm flag | What to set it to |
+The script loads the modules OSIRIS needs itself, so you don't need to set 
+anything up in your terminal first.
+
+### SLURM settings (`#SBATCH` lines)
+
+Change these for every run:
+
+| Flag | What it does |
 | :--- | :--- |
-| `#SBATCH --account=` | Your group's Great Lakes allocation |
-| `#SBATCH --ntasks=` | The **product** of `node_number` in the deck's `node_conf` section (e.g. `node_number(1:2) = 8, 4` → `--ntasks=32`). If they don't match, OSIRIS stops at startup. |
-| `#SBATCH --time=` | Wall-clock limit. 2D PKT runs at fine resolution take much longer than the 1D equivalent, so budget accordingly. |
+| `--job-name` | Name shown in `squeue` and in notification emails |
+| `--nodes` | Number of compute nodes |
+| `--tasks-per-node` | MPI ranks per node (standard nodes have 36 cores) |
+| `--time` | Wall-clock limit (`HH:MM:SS`); the job is killed when it runs out |
+| `--account` | Slurm account the compute time is billed to |
+| `--mail-user` | Your email, for job start/end/failure notifications |
 
-## 4. Input deck structure (general OSIRIS)
+You can usually leave these alone, but don't be afraid to change them if you
+need/want to:
 
+| Flag | What it does |
+| :--- | :--- |
+| `--mem-per-cpu` | Memory per MPI rank |
+| `--partition` | Queue to run in; `standard` is the normal CPU partition |
+| `--export` | `ALL` copies your environment (loaded modules, variables) into the job |
+| `--mail-type` | Which events trigger an email |
+
+**Matching `node_number`:** the total number of MPI ranks,
+`--nodes` × `--tasks-per-node`, must equal the number set by `node_number`
+in the deck's `node_conf` section. In 1D, that's just the value of
+`node_number`: a deck with `node_number(1:1) = 4` needs `--nodes=1` and
+`--tasks-per-node=4`. In 2D and 3D, it's the **product** of the values: a 2D
+deck with `node_number(1:2) = 8, 9` splits the box into 8 × 9 = 72 pieces,
+so it needs `--nodes=2` and `--tasks-per-node=36`. If the totals don't
+match, OSIRIS stops at startup.
+ 
+**`--time`:** run time grows quickly with dimension and resolution. A 2D run
+can take much longer than the 1D version of the same problem, so budget
+accordingly. Don't be the person who submits jobs with an insane wall time
+simply because you're too lazy to estimate how long your job will take.
+
+### Run settings (below "EDIT BELOW HERE")
+ 
+| Variable | What to set it to |
+| :--- | :--- |
+| `DIMS` | `1D`, `2D`, or `3D`. Selects `osiris-<DIMS>.e`, so it must match your deck |
+| `INPUTFILE` | Path to your input deck |
+| `RUNTITLE` | Optional label for the output folder name (no spaces) |
+| `ROOT_DIR` | Your OSIRIS build directory, the one containing `bin/` |
+| `DATA_DIR` | Where run folders are created. Use `/scratch`, and create it first |
+
+### What happens when the job runs
+
+1. The script clears any loaded modules and loads the ones OSIRIS was compiled
+   with.
+2. It creates a run directory, `DATA_DIR/os4.0_<DIMS>_<RUNTITLE>_<jobID>/`.
+3. It copies the executable and your deck into that directory. The deck is
+   renamed `os-stdin`, because that's the file OSIRIS reads its input from.
+4. It runs OSIRIS with `mpirun`, so all the output from the code ends up in the
+   run folder.
 
 ---
 
-## 5. Common input deck mistakes
+## Input deck structure
 
+An OSIRIS input deck is a text file made up of **sections** in the form 
+`section_name{ key = value, }`. The sections must appear in a fixed order. Below
+is a stripped-down 1D example showing that order. You can start with one of the
+decks in `decks/` instead of writing one from scratch.
 
---- 
+```fortran
+simulation { }                                   ! global options
+ 
+node_conf {                                      ! parallel decomposition
+  node_number(1:1) = 4,                          ! MPI ranks per direction -> must match jobex.sh (§3)
+  if_periodic(1:1) = .false.,
+}
+ 
+grid       { nx_p(1:1) = 2000, }                 ! number of cells
+time_step  { dt = 0.0099, ndump = 100, }         ! time step; base dump interval
+space      { xmin(1:1) = 0.0, xmax(1:1) = 20.0, }! box size
+time       { tmin = 0.0, tmax = 100.0, }         ! simulation length
+ 
+el_mag_fld { }                                   ! field solver options
+emf_bound  { type(1:2,1) = "open", "open", }     ! field boundaries
+diag_emf   { ndump_fac = 1, reports = "e1", "e2", }
+ 
+particles  { num_species = 1, }                  ! how many species follow
+ 
+! --- repeat this block once per species, in order ---
+species      { name = "electrons", num_par_x(1:1) = 8, rqm = -1.0, }
+profile      { ... }                             ! density profile
+spe_bound    { type(1:2,1) = "open", "open", }
+diag_species { ndump_fac = 1, reports = "charge", }
+ 
+! --- optional: lasers, current smoothing, etc. ---
+zpulse { ... }
+```
 
-## 6. Where to go next
+**Units.** OSIRIS uses normalized units. Lengths are in $c/\omega_p$, times in
+$1/\omega_p$, densities in $n_0$, and fields in $m_e c\,\omega_p / e$. Some
+laser decks normalize to the laser frequency $\omega_0$ instead, so check the
+comments at the top of the deck.
+
+**Output.** Everything goes into `MS/`: fields in `MS/FLD/`, phase spaces in
+`MS/PHA/`, and raw particle data in `MS/RAW/`, all as HDF5. The notebooks/python
+scripts in [`../analysis/`](../analysis) read these files.
+
+If you need more information on the input file format or the possible sections
+you can use in these input files, please see the 
+[official OSIRIS reference guide](https://osiris-code.github.io/osiris/reference/).
+
+---
+
+## Useful resources
+
+- **Analyze your output:** [`../analysis/`](../analysis) and the
+  [Python Analysis Environment](../docs/analysis/python-env.md) guide
+- **Official OSIRIS documentation:** full reference for every input deck
+  section and parameter: <https://osiris-code.github.io/>
+- **Cluster details:** [Great Lakes HPC Guide](../docs/clusters/great-lakes.md)
+
 
