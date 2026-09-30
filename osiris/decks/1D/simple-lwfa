@@ -1,4 +1,5 @@
 ! =============================================================================
+! =============================================================================
 
 ! -----------------------------------------------------------------------------
 ! Simulation: global options. Empty is fine; the defaults are sensible and will
@@ -10,10 +11,10 @@ simulation {
 
 ! -----------------------------------------------------------------------------
 ! node_conf: how the box is split between MPI ranks.
-!   node_number(1:2) = ranks along x1, ranks along x2
-!   The total (4 x 8 = 32) MUST equal --nodes x --tasks-per-node in jobex.sh
-!   Each rank gets 1024/4 = 256 cells along x1 and 256/8 = 32 cells along x2.
-!   if_periodic = .false. everywhere: nothing wraps around
+!   node_number(1:1) = 4 -> 4 ranks along x1. In 1D this number IS the total,
+!   so it must equal --nodes x --tasks-per-node in jobex.sh (1 x 4).
+!   Each rank gets 1024/4 = 256 cells.
+!   if_periodic = .false.: nothing wraps around.
 ! -----------------------------------------------------------------------------
 node_conf {
     node_number(1:1) = 4,
@@ -21,13 +22,11 @@ node_conf {
 }
 
 ! -----------------------------------------------------------------------------
-! grid: number of cells in each direction
+! grid: number of cells.
 !   Cell size = box length / number of cells (box size is set in "space").
 !       dx1 = 32.0 / 1024 = 0.03125 c/w_p -> about 20 cells per laser wavelength
 !                                            (2*pi/omega0 = 0.628). Must resolve
 !                                            the laser oscillation.
-!       dx2 = 25.6 / 256 = 0.1 c/w_p      -> transverse only needs to resolve the
-!                                            spot size and bubble, so coarser.
 ! -----------------------------------------------------------------------------
 grid {
     nx_p(1:1) = 1024,
@@ -36,8 +35,8 @@ grid {
 ! -----------------------------------------------------------------------------
 ! time_step
 !   dt: must satisfy the Courant condition or OSIRIS refuses to run.
-!       In 2D: dt < 1 / sqrt(1/dx1^2 + 1/dx2^2) = 0.0298 here; so 0.025 is 
-!       safely below it. If you change the grid, recompute this!
+!       In 1D this is simply dt < dx1 = 0.03125, so 0.025 is safely below it.
+!       If you change the grid, recompute this!
 !   ndump: base output interval in time steps. 400 steps x 0.025 = 10 / w_p.
 !          Each diagnostic below writes every (ndump x its ndump_fac) steps.
 ! -----------------------------------------------------------------------------
@@ -48,22 +47,20 @@ time_step {
 
 ! -----------------------------------------------------------------------------
 ! space: box size and the moving window.
-!   x1 (longitudinal, propagation direction): 0 to 32 c/w_p, about 5 plasma
-!       wavelengths.
-!   x2 (transverse): -12.8 to 12.8 c/w_p, several laser spot sizes wide so the
-!       laser and wake never touch the side boundaries.
+!   x1: 0 to 32 c/w_p, about 5 plasma wavelengths.
 !   if_move: the box moves along x1 at the speed of light, following the laser.
 !       Without this, we'd need a box as long as the whole plasma.
 ! -----------------------------------------------------------------------------
 space {
-    xmin(1:2) = 0.0,
-    xmax(1:2) = 32.0,
-    if_move(1:2) = .true.,
+    xmin(1:1) = 0.0,
+    xmax(1:1) = 32.0,
+    if_move(1:1) = .true.,
 }
 
 ! -----------------------------------------------------------------------------
 ! time: how long to simulate, in 1/w_p.
-!   tmax = 300 -> the laser travels 300 c/w_p = 0.38 mm
+!   tmax = 300 -> the laser travels 300 c/w_p = 0.38 mm (the plasma itself 
+!   starts at x1 = 32).
 ! -----------------------------------------------------------------------------
 time {
     tmin = 0.0,
@@ -71,44 +68,80 @@ time {
 }
 
 ! -----------------------------------------------------------------------------
+! el_mag_fld: field solver options. Defaults (no external fields) are fine.
 ! -----------------------------------------------------------------------------
 el_mag_fld {
 
 }
 
 ! -----------------------------------------------------------------------------
+! emf_bound: field boundary conditions, type(lower:upper, direction).
+!   "open" absorbs the outgoing waves so nothing reflects back into the box.
+!   The moving window overrides this along x1, but we still need to set it.
 ! -----------------------------------------------------------------------------
 emf_bound {
     type(1:2,1) = "open", "open",
 }
 
 ! -----------------------------------------------------------------------------
+! diag_emf: field output.
+!   e1 = longitudinal E (the wakefield), e2 = transverse_E (the laser, since it
+!   is polarized along x2), b3 = transverse B (the laser's magnetic field).
+!   ndump_fac = 1 -> written every ndump = 400 steps (10 / w_p).
 ! -----------------------------------------------------------------------------
 diag_emf {
     ndump_fac = 1,
     reports = "e1", "e2", "b3",
 }
 
+! -----------------------------------------------------------------------------
+! particles: global particle options.
+!   num_species: how many "species" blocks follow.
+!   interpolation: particle shape.
+! -----------------------------------------------------------------------------
 particles {
     num_species = 1,
     interpolation = "quadratic",
 }
 
+! -----------------------------------------------------------------------------
+! species 1: plasma electrons
+!   rqm = charge-to-mass ratio in units of e/m_e -> -1 for electrons.
+!   num_par_x = macro-particles per cell.
+! -----------------------------------------------------------------------------
 species {
     name = "electrons",
     rqm = -1.0,
-    num_par_x(1:1) = 8,
+    num_par_x(1:1) = 4,
 }
 
+! -----------------------------------------------------------------------------
+! profile: electron density, as a multiple of n0.
+!   x1 < 32      : vacuum (the laser starts here)
+!   32 < x1 < 42 : linear up-ramp from 0 to 1
+!   x1 > 42      : uniform plateau at n0
+! -----------------------------------------------------------------------------
 profile {
     profile_type = "math func",
     math_func_expr = "if(x1 < 32.0, 0.0, if(x1 < 42.0, (x1 - 32.0)/10.0, 1.0))",
 }
 
+! -----------------------------------------------------------------------------
+! spe_bound: particle boundaries. "open" = particles that leave are removed.
+! -----------------------------------------------------------------------------
 spe_bound {
     type(1:2,1) = "open", "open",
 }
 
+! -----------------------------------------------------------------------------
+! diag_species: particle output.
+!   reports = "charge" -> charge density on the grid.
+!   phasespaces = "p1x1" -> longitudinal momentum vs x1
+!   ps_nx / ps_np: resolution of the phase-space histograms.
+!   ps_pmin / ps_pmax: momentum range (in m_e c) for p1, p2, p3. 
+!   if_ps_p_auto = .true. lets OSIRIS widen the momentum range automatically
+!                  if particles go beyond it.
+! -----------------------------------------------------------------------------
 diag_species {
     ndump_fac = 1,
     reports = "charge",
@@ -122,6 +155,13 @@ diag_species {
     phasespaces = "p1x1",
 }
 
+! -----------------------------------------------------------------------------
+! zpulse: the laser.
+!   a0 = 4          : normalized amplitude (peak vector potential). a0 > 1 is
+!                     "relativistic".
+!   omega0 = 10     : laser frequency / plasma frequency (sets n0).
+!   pol = 0         : polarized along x2.
+! -----------------------------------------------------------------------------
 zpulse {
     a0 = 4.0,
     omega0 = 10.0,
