@@ -88,9 +88,3 @@ code is contained in it.
   the guides.
 - **Adding new code?** Copy the structure of `osiris/`: a `README.md`, a `jobex.sh`,
   and an example input deck.
-
-
-
-
-
-

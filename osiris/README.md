@@ -336,5 +336,3 @@ you can use in these input files, please see the
 - **Official OSIRIS documentation:** full reference for every input deck
   section and parameter: <https://osiris-code.github.io/>
 - **Cluster details:** [Great Lakes HPC Guide](../docs/clusters/great-lakes.md)
-
-
